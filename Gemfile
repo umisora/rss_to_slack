@@ -1,0 +1,5 @@
+source 'https://rubygems.org'
+gem 'feedbag'
+gem 'feedzirra'
+gem 'feedjira'
+gem 'pry'
