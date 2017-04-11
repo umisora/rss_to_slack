@@ -10,7 +10,12 @@ class RssSlack
     @slack_channel = ENV['RSS2SLACK_SLACK_CHANNEL'] ||= ""
     @slack_iconemoji = ENV['RSS2SLACK_SLACK_ICONEMOJI'] ||= ""
     @slack_username = ENV['RSS2SLACK_SLACK_USERNAME'] ||= ""
-    @environment = ENV['RSS2SLACK_ENV'] ||= "" 
+    @environment = ENV['RSS2SLACK_ENV'] ||= ""
+    if File.exist?("last.url")
+      @is_first = false
+    else
+      @is_first = true
+    end
   end
 
   def run()
@@ -19,11 +24,13 @@ class RssSlack
     
     # 過去に実行した履歴があれば読み込む
     last_urls = []
-    last_urls = File.open("last.url").readlines if File.exist?("last.url")
-    last_urls.each do |url|
-      entry = Feedjira::Parser::RSSEntry.new
-      entry.url = url.chomp
-      feed.entries.push(entry)
+    unless @is_first 
+      last_urls = File.open("last.url").readlines 
+      last_urls.each do |url|
+        entry = Feedjira::Parser::RSSEntry.new
+        entry.url = url.chomp
+        feed.entries.push(entry)
+      end
     end
     new_feed = Feedjira::Feed.fetch_and_parse(@feed_url)
     feed.update_from_feed(new_feed)
@@ -61,7 +68,7 @@ class RssSlack
           footer: "#{@environment} Jenkins",
           ts: Time.parse(entry.updated.to_s).to_i
         }
-      slack.post "", attachments: [attachments]
+      slack.post "", attachments: [attachments] unless @is_first
       last_url = entry.url
     end
     
