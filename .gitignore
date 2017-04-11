@@ -1,5 +1,6 @@
 # Custom User File
 last.url
+.envrc
 
 # File
 *.gem
